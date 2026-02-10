@@ -1,2 +1,2 @@
 # Lab
-Config
+Config Repository
