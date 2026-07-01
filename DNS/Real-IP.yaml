@@ -1,0 +1,21 @@
+payload:
+# LAN
+  - '*'
+  - '+.lan'
+  - '+.local'
+  - '+.localhost'
+  - '+.localdomain'
+  - '+.home'
+  - '+.home.arpa'
+  - '+.internal'
+  - '+.mail'
+  - '+.corp'
+  - '+.ipv4only.arpa'
+
+# 补充
+  - '.nip.io'
+  - '.sslip.io'
+  - 'lancache.steamcontent.com'
+  - 'localhost.ptlogin2.qq.com'
+  - 'localhost.sec.qq.com'
+  - 'localhost.work.weixin.qq.com'

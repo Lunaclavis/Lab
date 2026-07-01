@@ -1,0 +1,379 @@
+#--------------------------------------------------#
+#                更新于: 2026-03-29
+#--------------------------------------------------#
+
+# log-level: info
+ipv6: false
+mode: rule
+allow-lan: false
+mixed-port: 1080
+unified-delay: true
+tcp-concurrent: true
+
+profile:
+  store-selected: true
+  store-fake-ip: true
+
+geo-auto-update: true
+geo-update-interval: 72
+geox-url:
+  geosite: "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geosite-lite.dat"
+  mmdb: "https://cdn.jsdelivr.net/gh/Lunaclavis/GeoIP@release/Country.mmdb"
+
+
+
+hosts:
+  '+.localhost': '127.0.0.1'
+  '+.mcdn.bilivideo.cn': '127.0.0.1'
+  '+.szbdyd.com': '127.0.0.1'
+
+
+
+dns:
+  enable: true
+  ipv6: false
+  listen: 0.0.0.0:53
+  use-hosts: true
+  use-system-hosts: true
+  prefer-h3: false
+  respect-rules: false
+  enhanced-mode: fake-ip
+  fake-ip-range: 28.0.0.1/8
+  fake-ip-range6: fd00:1080::1/96
+  fake-ip-filter-mode: blacklist
+  fake-ip-filter:
+    - 'rule-set:DNS-NXDOMAIN'
+    - 'rule-set:Real-IP-list'
+  default-nameserver:
+    - 119.29.29.29
+    - 223.5.5.5
+    - system
+  nameserver:
+    - https://doh.pub/dns-query
+    - https://dns.alidns.com/dns-query
+  fallback:
+    - https://cloudflare-dns.com/dns-query#🧭 DNS
+    - https://dns.google/dns-query#🧭 DNS
+# direct-nameserver:
+#   - system
+  direct-nameserver-follow-policy: true
+  proxy-server-nameserver:
+    - https://doh.pub/dns-query
+    - https://dns.alidns.com/dns-query
+  fallback-filter:
+    geoip: true
+    geoip-code: CN
+    ipcidr:
+      - 0.0.0.0/8
+      - 10.0.0.0/8
+      - 100.64.0.0/10
+      - 127.0.0.0/8
+      - 169.254.0.0/16
+      - 172.16.0.0/12
+      - 192.168.0.0/16
+      - 224.0.0.0/4
+      - 240.0.0.0/4
+      - ::/127
+      - 100::/64
+      - 2001::/32
+      - 2001:20::/28
+      - 2001:db8::/32
+      - 2002::/16
+      - fc00::/7
+      - fe80::/10
+      - ff00::/8
+    domain:
+      - '+.google'
+      - '+.google.*'
+      - '+.google.*.*'
+      - '+.youtube'
+      - '+.youtube.*'
+      - '+.youtube.*.*'
+  nameserver-policy:
+    '+.28.in-addr.arpa': [rcode://not_implemented]
+    '+.0.8.0.1.0.0.d.f.ip6.arpa': [rcode://not_implemented]
+    'rule-set:DNS-NXDOMAIN': [rcode://name_error]
+    'rule-set:DNS-LAN': [dhcp://system]
+    'rule-set:DNS-Tencent': [https://doh.pub/dns-query]
+    'rule-set:DNS-Alibaba': [https://dns.alidns.com/dns-query]
+    'rule-set:Proxy-list':
+      - https://cloudflare-dns.com/dns-query#🧭 DNS
+      - https://dns.google/dns-query#🧭 DNS
+
+
+
+sniffer:
+  enable: true
+  force-dns-mapping: true
+  parse-pure-ip: true
+  override-destination: false
+  sniff:
+    HTTP:
+      ports: [80]
+      override-destination: true
+    TLS:
+      ports: [443]
+    QUIC:
+      ports: [443]
+# force-domain: []
+  skip-domain:
+    - '+.push.apple.com'
+    - 'Mijia Cloud'
+# skip-src-address: []
+  skip-dst-address:
+    # Telegram
+    - 91.105.192.0/23
+    - 91.108.4.0/22
+    - 91.108.8.0/21
+    - 91.108.16.0/21
+    - 91.108.56.0/22
+    - 149.154.160.0/20
+    - 185.76.151.0/24
+    - 2001:67c:4e8::/48
+    - 2001:b28:f23c::/48
+    - 2001:b28:f23d::/48
+    - 2001:b28:f23f::/48
+    - 2a0a:f280::/32
+
+
+
+proxies:
+
+
+
+proxy-providers:
+  Main:
+    type: http
+    url: "https://example.com/subscribe?token=xxxxxx&flag=clash"
+    interval: 86400
+    path: ./ProxySet/Main.yaml
+    health-check:
+      enable: true
+      interval: 600
+      url: https://www.apple.com/
+    override:
+      additional-prefix: "[主] "
+
+  Backup:
+    type: http
+    url: "https://example.com/subscribe?token=xxxxxx&flag=clash"
+    interval: 86400
+    path: ./ProxySet/Backup.yaml
+    health-check:
+      enable: true
+      interval: 600
+      url: https://www.apple.com/
+    override:
+      additional-prefix: "[次] "
+
+
+
+proxy-groups:
+  - name: "🚀 节点选择"
+    type: select
+    proxies:
+      - DIRECT
+    use:
+      - Main
+      - Backup
+
+  - name: "🌏️ 全球直连"
+    type: select
+    proxies:
+      - 🚀 节点选择
+      - DIRECT
+
+  - name: "🚫 拦截净化"
+    type: select
+    proxies:
+      - 🚀 节点选择
+      - REJECT
+      - REJECT-DROP
+
+  - name: "🤖 AIGC"
+    type: select
+    use:
+      - Main
+      - Backup
+    proxies:
+      - 🚀 节点选择
+      - DIRECT
+
+  - name: "📺️ 哔哩哔哩"
+    type: select
+    filter: '香港|HK|台湾|TW|(?i)Hong Kong|Taiwan'
+    use:
+      - Main
+      - Backup
+    proxies:
+      - 🚀 节点选择
+      - DIRECT
+
+  - name: "🎮️ 游戏"
+    type: select
+#   filter: '游戏|香港|HK|台湾|TW|新加坡|狮城|SG|日本|JP|美国|US|(?i)Hong Kong|Taiwan|Singapore|Japan|United States'
+    use:
+      - Main
+      - Backup
+    proxies:
+      - 🚀 节点选择
+      - DIRECT
+
+  - name: "🧭 DNS"
+    type: select
+    use:
+      - Main
+      - Backup
+    proxies:
+      - 🚀 节点选择
+      - DIRECT
+
+
+
+rule-providers:
+  Real-IP-list:
+    behavior: "domain"
+    type: http
+    url: "https://cdn.jsdelivr.net/gh/Lunaclavis/Lab@release/DNS/Real-IP.yaml"
+    format: 'yaml'
+    interval: 86400
+    path: ./RuleSet/Real-IP.yaml
+
+  DNS-LAN:
+    behavior: "domain"
+    type: http
+    url: "https://cdn.jsdelivr.net/gh/Lunaclavis/Lab@release/DNS/LAN.yaml"
+    format: 'yaml'
+    interval: 86400
+    path: ./RuleSet/LAN.yaml
+
+  DNS-NXDOMAIN:
+    behavior: "domain"
+    type: http
+    url: "https://cdn.jsdelivr.net/gh/Lunaclavis/Lab@release/DNS/NXDOMAIN.yaml"
+    format: 'yaml'
+    interval: 86400
+    path: ./RuleSet/NXDOMAIN.yaml
+
+  DNS-Tencent:
+    behavior: "domain"
+    type: http
+    url: "https://cdn.jsdelivr.net/gh/Lunaclavis/Lab@release/DNS/Tencent.yaml"
+    format: 'yaml'
+    interval: 86400
+    path: ./RuleSet/Tencent.yaml
+
+  DNS-Alibaba:
+    behavior: "domain"
+    type: http
+    url: "https://cdn.jsdelivr.net/gh/Lunaclavis/Lab@release/DNS/Alibaba.yaml"
+    format: 'yaml'
+    interval: 86400
+    path: ./RuleSet/Alibaba.yaml
+
+  Drop-list:
+    behavior: "classical"
+    type: http
+    url: "https://cdn.jsdelivr.net/gh/Lunaclavis/Lab@release/RuleSet/Drop.conf"
+    format: 'text'
+    interval: 86400
+    path: ./RuleSet/Drop.conf
+
+  Reject-list:
+    behavior: "classical"
+    type: http
+    url: "https://cdn.jsdelivr.net/gh/Lunaclavis/Lab@release/RuleSet/Reject.conf"
+    format: 'text'
+    interval: 86400
+    path: ./RuleSet/Reject.conf
+
+  Proxy-list:
+    behavior: "domain"
+    type: http
+    url: "https://cdn.jsdelivr.net/gh/Lunaclavis/Lab@release/RuleSet/Proxy.yaml"
+    format: 'yaml'
+    interval: 86400
+    path: ./RuleSet/Proxy.yaml
+
+  AIGC:
+    behavior: "classical"
+    type: http
+    url: "https://cdn.jsdelivr.net/gh/Lunaclavis/Lab@release/RuleSet/AIGC.conf"
+    format: 'text'
+    interval: 86400
+    path: ./RuleSet/AIGC.conf
+
+  SNS:
+    behavior: "classical"
+    type: http
+    url: "https://cdn.jsdelivr.net/gh/Lunaclavis/Lab@release/RuleSet/SNS.conf"
+    format: 'text'
+    interval: 86400
+    path: ./RuleSet/SNS.conf
+
+  Bilibili:
+    behavior: "classical"
+    type: http
+    url: "https://cdn.jsdelivr.net/gh/Lunaclavis/Lab@release/RuleSet/Bilibili.conf"
+    format: 'text'
+    interval: 86400
+    path: ./RuleSet/Bilibili.conf
+
+  Apple:
+    behavior: "classical"
+    type: http
+    url: "https://cdn.jsdelivr.net/gh/Lunaclavis/Lab@release/RuleSet/Apple.conf"
+    format: 'text'
+    interval: 86400
+    path: ./RuleSet/Apple.conf
+
+  Gaming:
+    behavior: "classical"
+    type: http
+    url: "https://cdn.jsdelivr.net/gh/Lunaclavis/Lab@release/RuleSet/Gaming.conf"
+    format: 'text'
+    interval: 86400
+    path: ./RuleSet/Gaming.conf
+
+
+
+rules:
+# 补充
+  - AND,((NETWORK,UDP),(DST-PORT,443)),REJECT
+
+# Ban list
+  - RULE-SET,Drop-list,REJECT-DROP,no-resolve
+  - RULE-SET,Reject-list,🚫 拦截净化,no-resolve
+
+# AIGC
+  - RULE-SET,AIGC,🤖 AIGC,no-resolve
+
+# SNS
+  - RULE-SET,SNS,🚀 节点选择,no-resolve
+
+# 哔哩哔哩
+  - RULE-SET,Bilibili,📺️ 哔哩哔哩,no-resolve
+
+# 苹果
+  - RULE-SET,Apple,🌏️ 全球直连,no-resolve
+
+# 游戏
+  - RULE-SET,Gaming,🎮️ 游戏,no-resolve
+
+# Proxy list
+  - DOMAIN-KEYWORD,.google,🚀 节点选择
+  - DOMAIN-KEYWORD,.youtube,🚀 节点选择
+  - RULE-SET,Proxy-list,🚀 节点选择
+
+# Direct list
+  - GEOSITE,microsoft,🌏️ 全球直连
+  - GEOSITE,cn,🌏️ 全球直连
+
+# LAN
+  - GEOIP,LAN,DIRECT
+  - IP-CIDR,100.64.0.0/10,DIRECT
+  - IP-CIDR,240.0.0.0/4,DIRECT
+
+# Final
+  - GEOIP,CN,🌏️ 全球直连
+  - MATCH,🚀 节点选择
