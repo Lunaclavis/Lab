@@ -1,0 +1,17 @@
+payload:
+# Reserved
+  - '+.alt'
+  - '+.test'
+  - '+.example'
+  - '+.example.com'
+  - '+.example.net'
+  - '+.example.org'
+  - '+.invalid'
+  - '+.onion'
+  - '+.resolver.arpa'
+  - '+.service.arpa'
+  - '+.eap.arpa'
+  - '+.6tisch.arpa'
+
+# 补充
+  - 'use-application-dns.net'
